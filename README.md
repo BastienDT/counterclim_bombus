@@ -8,3 +8,15 @@ Climate change is a major driver of biodiversity loss, particularly for insects 
 <img src="Scripts_&_data/Figure_1_081025.png" align="center" alt="" />
 
 **Figure 1. Isolated impact of climate change on the ecological suitability of Europe for 47 bumblebee species.** We here report, for each period, the difference between bumblebee ecological suitability estimates based on (i) the reconstructions of the historical climate (first row) and (ii) a counterfactual baseline (second row). The third row of maps reports the difference, for each time period, between the two, i.e., between the estimates based on the reconstructions of the historical climate and a counterfactual baseline. Specifically, we here focus on the ecological suitability index (ESI) defined as the local mean ecological suitability averaged over species (and thus ranging from 0 to 1). The computation of the ESI metric was thus based on species-specific ecological suitability maps, which were obtained by averaging over the estimates of ten independent BRT models trained on present-day data retrieved from the ISIMIP3a reanalysis dataset GSWP3-W5E5. See Figures S5-S7 for the corresponding results based on the three other ISIMIP3a reanalysis datasets — 20CRv3, 20CRv3-ERA5, and 20CRv3-W5E5 — considered in the present study.
+
+### R packages used in this study, software requirements, and computation times
+
+All the remaining data analyses and visualisations were done in [R](https://www.r-project.org/) v4.5.2 and centralised within a single R script (`Script_ENM_study.r`). In addition, the following R packages – all available on [CRAN](https://cran.r-project.org/) – were used for the data analyses and visualisation: "ade4", "ape", "beeswarm", "blockCV", "colorspace", "diagram", "dismo", "gbm", "geosphere", "ggplot2", "HDInterval", "lubridate", "ncdf4", "ncf", "picante", "phytools", "RColorBrewer", "raster", "rgdal", "rgeos", "seqinr", "sf", "sp", and "vioplot". All the analyses were ran locally on a desktop computer (Apple MacStudio) with MacOS 26.2 and took in total less than two days. Here are the different analytical steps gathered within the R script :
+(1) Preparation of the different land cover and climatic environmental rasters
+(2) Loading and ploting all the occurrence records for each Bombus species in Europe
+(3) Boosted regression tree analyses with a spatial cross-validation procedure
+(4) Computation of the prevalence-pseudoabsence-calibrated Sørensen index (SI_pcc)
+(5) Computation and analysis of the relative influence of each environmental factor
+(6) BRT projections based on historical and counterfactual climate simulations
+(7) Computation and mapping of the ESI and SRI metrics for the different time periods
+(8) Computation and mapping of the evolution of the Boyce index (BI) through time
