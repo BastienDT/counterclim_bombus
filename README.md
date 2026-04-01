@@ -11,12 +11,13 @@ Climate change is a major driver of biodiversity loss, particularly for insects 
 
 ### R packages used in this study, software requirements, and computation times
 
-All the remaining data analyses and visualisations were done in [R](https://www.r-project.org/) v4.5.2 and centralised within a single R script (`Script_ENM_study.r`). In addition, the following R packages – all available on [CRAN](https://cran.r-project.org/) – were used for the data analyses and visualisation: "ade4", "ape", "beeswarm", "blockCV", "colorspace", "diagram", "dismo", "gbm", "geosphere", "ggplot2", "HDInterval", "lubridate", "ncdf4", "ncf", "picante", "phytools", "RColorBrewer", "raster", "rgdal", "rgeos", "seqinr", "sf", "sp", and "vioplot". All the analyses were ran locally on a desktop computer (Apple MacStudio) with MacOS 26.2 and took in total less than two days. Here are the different analytical steps gathered within the R script :
-(1) Preparation of the different land cover and climatic environmental rasters
-(2) Loading and ploting all the occurrence records for each Bombus species in Europe
-(3) Boosted regression tree analyses with a spatial cross-validation procedure
-(4) Computation of the prevalence-pseudoabsence-calibrated Sørensen index (SI_pcc)
-(5) Computation and analysis of the relative influence of each environmental factor
-(6) BRT projections based on historical and counterfactual climate simulations
-(7) Computation and mapping of the ESI and SRI metrics for the different time periods
-(8) Computation and mapping of the evolution of the Boyce index (BI) through time
+All the remaining data analyses and visualisations were done in [R](https://www.r-project.org/) v4.5.2 and centralised within a single R script (`Script_ENM_study.r`). In addition, the following R packages – all available on [CRAN](https://cran.r-project.org/) – were used for the data analyses and visualisation: "ade4", "ape", "beeswarm", "blockCV", "colorspace", "diagram", "dismo", "gbm", "geosphere", "ggplot2", "HDInterval", "lubridate", "ncdf4", "ncf", "picante", "phytools", "RColorBrewer", "raster", "rgdal", "rgeos", "seqinr", "sf", "sp", and "vioplot". All the analyses were ran locally on a desktop computer (Apple MacStudio) with MacOS 26.2 and took in total less than two days. Here are the different analytical steps gathered within the R script `Script_ENM_study.r`:
+
+* (1) Preparation of the different land cover and climatic environmental rasters;
+* (2) Loading and ploting all the occurrence records for each Bombus species in Europe;
+* (3) Boosted regression tree analyses with a spatial cross-validation procedure;
+* (4) Computation of the prevalence-pseudoabsence-calibrated Sørensen index;
+* (5) Computation and analysis of the relative influence of each environmental factor;
+* (6) BRT projections based on historical and counterfactual climate simulations;
+* (7) Computation and mapping of the ESI and SRI metrics for the different time periods;
+* (8) Computation and mapping of the evolution of the Boyce index (BI) through time.
