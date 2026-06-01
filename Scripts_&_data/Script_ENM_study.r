@@ -19,6 +19,7 @@ library(raster)
 library(rgdal)
 library(rgeos)
 library(seqinr)
+library(sf)
 library(sp)
 library(vioplot)
 
@@ -990,9 +991,16 @@ contour = rasterToPolygons(r>0, dissolve=T); colourScales = list()
 colourScales[[1]] = rev(hcl.colors(100,palette="terrain2")[1:100])
 colourScales[[2]] = rev(hcl.colors(100,palette="terrain2")[1:100])
 colourScales[[3]] = colorRampPalette(brewer.pal(11,"RdBu"))(100)
+plotting_obsclim_counterclim_differences = TRUE
+# plotting_obsclim_counterclim_differences = FALSE
 for (g in 1:length(models_isimip3a))
 	{
-		pdf(paste0("All_the_figures_&_SI/ESI_evolutions_m",g,".pdf"), width=8, height=5.8)
+		if (plotting_obsclim_counterclim_differences)
+			{
+				pdf(paste0("All_the_figures_&_SI/ESI_evolutions_m",g,".pdf"), width=8, height=5.8)
+			}	else	{
+				pdf(paste0("All_the_figures_&_SI/ESI_evolutions_m",g,"_TEMP.pdf"), width=8, height=5.8)
+			}
 		par(mfrow=c(3,6), oma=c(0,0,0,0), mar=c(0,0,0,0), lwd=0.2, col="gray30"); vS1 = c(); vS2 = c()
 		for (h in 1:length(scenarios))
 			{
@@ -1015,7 +1023,8 @@ for (g in 1:length(models_isimip3a))
 						index2 = (((max(ESI_list_1[[g]][[h]][[i]][],na.rm=T)-min(vS1))/(max(vS1)-min(vS1)))*100)+1
 						par(lwd=0.2, col="gray30", col.axis="gray30", fg=NA)
 						plot(europe3, lwd=0.1, border=NA, col=NA); cols = colourScales[[h]][index1:index2]; rast = raster(as.matrix(c(min(vS1),max(vS1))))
-						plot(projections_list_1[[g]][[h]][[i]][[j]], col=cols, border=NA, lwd=0.1, add=T, legend=F); plot(contour, lwd=0.4, border="gray50", col=NA, add=T)
+						# plot(projections_list_1[[g]][[h]][[i]][[j]], col=cols, border=NA, lwd=0.1, add=T, legend=F) --> WRONG and corrected on 01/06/2026
+						plot(ESI_list_1[[g]][[h]][[i]], col=cols, border=NA, lwd=0.1, add=T, legend=F); plot(contour, lwd=0.4, border="gray50", col=NA, add=T)
 						if (h == 1) mtext("Historical reconstruction", side=3, line=-1.1, at=3.5, cex=0.45, col="gray30")
 						if (h == 2) mtext("Counterfactual baseline", side=3, line=-1.1, at=3.5, cex=0.45, col="gray30")
 						mtext(paste0("(",pastPeriods[i],")"), side=3, line=-1.9, at=5.0, cex=0.50, col="gray30")
@@ -1025,17 +1034,46 @@ for (g in 1:length(models_isimip3a))
 							 at=c(0.2,0.4,0.6,0.8)), alpha=1, side=3)
 					}
 			}
-		for (i in 1:length(pastPeriods))
+		if (plotting_obsclim_counterclim_differences)
 			{
-				difference_obsclim_counterclim = ESI_list_1[[g]][[1]][[i]]
-				difference_obsclim_counterclim[] = difference_obsclim_counterclim[]-ESI_list_1[[g]][[2]][[i]][]
-				index1 = (((min(difference_obsclim_counterclim[],na.rm=T)-minVS2)/(maxVS2-minVS2))*100)+1
-				index2 = (((max(difference_obsclim_counterclim[],na.rm=T)-minVS2)/(maxVS2-minVS2))*100)+1
+				for (i in 1:length(pastPeriods))
+					{
+						difference_obsclim_counterclim = ESI_list_1[[g]][[1]][[i]]
+						difference_obsclim_counterclim[] = difference_obsclim_counterclim[]-ESI_list_1[[g]][[2]][[i]][]
+						index1 = (((min(difference_obsclim_counterclim[],na.rm=T)-minVS2)/(maxVS2-minVS2))*100)+1
+						index2 = (((max(difference_obsclim_counterclim[],na.rm=T)-minVS2)/(maxVS2-minVS2))*100)+1
+						par(lwd=0.2, col="gray30", col.axis="gray30", fg=NA)
+						plot(europe3, lwd=0.1, border=NA, col=NA); cols = colourScales[[3]][index1:index2]; rast = raster(as.matrix(c(minVS2,maxVS2)))
+						plot(difference_obsclim_counterclim, col=cols, border=NA, lwd=0.1, add=T, legend=F); plot(contour, lwd=0.4, border="gray50", col=NA, add=T)
+						mtext("Historical - counterfactual", side=3, line=-1.1, at=3.5, cex=0.45, col="gray30")
+						mtext(paste0("(",pastPeriods[i],")"), side=3, line=-1.9, at=5.5, cex=0.50, col="gray30")
+						par(lwd=0.2, col="gray30", col.axis="gray30", fg="gray30")
+						plot(rast, legend.only=T, add=T, col=colourScales[[3]], legend.width=0.5, legend.shrink=0.3, smallplot=c(0.060,0.085,0.69,0.89), adj=3,
+							 axis.args=list(cex.axis=0.60, lwd=0, col="gray30", lwd.tick=0.2, col.tick="gray30", tck=-1.0, col.axis="gray30", line=0, mgp=c(0,0.40,0),
+							 at=c(-0.2,-0.1,0,0.1,0.2)), alpha=1, side=3)
+					}
+			}	else	{
+				plot.new(); plot.new(); plot.new(); plot.new()
+				difference_counterclim_century = ESI_list_1[[g]][[2]][[length(pastPeriods)]]
+				difference_counterclim_century[] = difference_counterclim_century[]-ESI_list_1[[g]][[2]][[1]][]
+				index1 = (((min(difference_counterclim_century[],na.rm=T)-minVS2)/(maxVS2-minVS2))*100)+1
+				index2 = (((max(difference_counterclim_century[],na.rm=T)-minVS2)/(maxVS2-minVS2))*100)+1
 				par(lwd=0.2, col="gray30", col.axis="gray30", fg=NA)
 				plot(europe3, lwd=0.1, border=NA, col=NA); cols = colourScales[[3]][index1:index2]; rast = raster(as.matrix(c(minVS2,maxVS2)))
-				plot(difference_obsclim_counterclim, col=cols, border=NA, lwd=0.1, add=T, legend=F); plot(contour, lwd=0.4, border="gray50", col=NA, add=T)
-				mtext("Historical - counterfactual", side=3, line=-1.1, at=3.5, cex=0.45, col="gray30")
-				mtext(paste0("(",pastPeriods[i],")"), side=3, line=-1.9, at=5.5, cex=0.50, col="gray30")
+				plot(difference_counterclim_century, col=cols, border=NA, lwd=0.1, add=T, legend=F); plot(contour, lwd=0.4, border="gray50", col=NA, add=T)
+				mtext("Counterfactual (t0 - past)", side=3, line=-1.1, at=3.5, cex=0.45, col="gray30")
+				par(lwd=0.2, col="gray30", col.axis="gray30", fg="gray30")
+				plot(rast, legend.only=T, add=T, col=colourScales[[3]], legend.width=0.5, legend.shrink=0.3, smallplot=c(0.060,0.085,0.69,0.89), adj=3,
+					 axis.args=list(cex.axis=0.60, lwd=0, col="gray30", lwd.tick=0.2, col.tick="gray30", tck=-1.0, col.axis="gray30", line=0, mgp=c(0,0.40,0),
+					 at=c(-0.2,-0.1,0,0.1,0.2)), alpha=1, side=3)
+				difference_obsclim_century = ESI_list_1[[g]][[1]][[length(pastPeriods)]]
+				difference_obsclim_century[] = difference_obsclim_century[]-ESI_list_1[[g]][[1]][[1]][]
+				index1 = (((min(difference_obsclim_century[],na.rm=T)-minVS2)/(maxVS2-minVS2))*100)+1
+				index2 = (((max(difference_obsclim_century[],na.rm=T)-minVS2)/(maxVS2-minVS2))*100)+1
+				par(lwd=0.2, col="gray30", col.axis="gray30", fg=NA)
+				plot(europe3, lwd=0.1, border=NA, col=NA); cols = colourScales[[3]][index1:index2]; rast = raster(as.matrix(c(minVS2,maxVS2)))
+				plot(difference_obsclim_century, col=cols, border=NA, lwd=0.1, add=T, legend=F); plot(contour, lwd=0.4, border="gray50", col=NA, add=T)
+				mtext("Historical (t0 - past)", side=3, line=-1.1, at=3.5, cex=0.45, col="gray30")
 				par(lwd=0.2, col="gray30", col.axis="gray30", fg="gray30")
 				plot(rast, legend.only=T, add=T, col=colourScales[[3]], legend.width=0.5, legend.shrink=0.3, smallplot=c(0.060,0.085,0.69,0.89), adj=3,
 					 axis.args=list(cex.axis=0.60, lwd=0, col="gray30", lwd.tick=0.2, col.tick="gray30", tck=-1.0, col.axis="gray30", line=0, mgp=c(0,0.40,0),
@@ -1067,7 +1105,8 @@ for (g in 1:length(models_isimip3a))
 						index2 = (((max(SRI_list_1[[g]][[h]][[i]][],na.rm=T)-min(vS1))/(max(vS1)-min(vS1)))*100)+1
 						par(lwd=0.2, col="gray30", col.axis="gray30", fg=NA)
 						plot(europe3, lwd=0.1, border=NA, col=NA); cols = colourScales[[h]][index1:index2]; rast = raster(as.matrix(c(min(vS1),max(vS1))))
-						plot(projections_list_1[[g]][[h]][[i]][[j]], col=cols, border=NA, lwd=0.1, add=T, legend=F); plot(contour, lwd=0.4, border="gray50", col=NA, add=T)
+						# plot(projections_list_1[[g]][[h]][[i]][[j]], col=cols, border=NA, lwd=0.1, add=T, legend=F) --> WRONG and corrected on 01/06/2026
+						plot(SRI_list_1[[g]][[h]][[i]], col=cols, border=NA, lwd=0.1, add=T, legend=F); plot(contour, lwd=0.4, border="gray50", col=NA, add=T)
 						if (h == 1) mtext("Historical reconstruction", side=3, line=-1.1, at=3.5, cex=0.45, col="gray30")
 						if (h == 2) mtext("Counterfactual baseline", side=3, line=-1.1, at=3.5, cex=0.45, col="gray30")
 						mtext(paste0("(",pastPeriods[i],")"), side=3, line=-1.8, at=5.0, cex=0.50, col="gray30")
@@ -1179,18 +1218,90 @@ for (i in 1:length(target_countries))
 		# SRI, Sweden: -6.68% (GSWP3-W5E5), -0.33% (20CRv3), -5.32% (20CRv3-ERA5), -0.28% (20CRv3-W5E5) --> an average gain of 0 to 7% of local species diversity solely due to climate change
 
 selected_regions = c("Alpine","Atlantic","Boreal","Continental","Mediterranean","Pannonian")
-if (!file.exists("Biogeo_regions_shp/Biogeo_regions_2016.rds"))
+if (!file.exists("Biogeo_regions_shp/Biogeo_regions_2016a.rds"))
 	{
-		biogeo_regions = shapefile("Biogeo_regions_shp/Biogeo_regions_2016.shp")
-		biogeo_regions = subset(biogeo_regions, code%in%selected_regions)
-		saveRDS(biogeo_regions, "Biogeo_regions_shp/Biogeo_regions_2016.rds")
+		biogeo_regions_subset = shapefile("Biogeo_regions_shp/Biogeo_regions_2016.shp")
+		biogeo_regions_subset = subset(biogeo_regions_subset, code%in%selected_regions)
+		saveRDS(biogeo_regions_subset, "Biogeo_regions_shp/Biogeo_regions_2016a.rds")
 	}	else	{
-		biogeo_regions = readRDS("Biogeo_regions_shp/Biogeo_regions_2016.rds")
+		biogeo_regions_subset = readRDS("Biogeo_regions_shp/Biogeo_regions_2016a.rds")
 	}
+if (!file.exists("Biogeo_regions_shp/Biogeo_regions_2016b.rds"))
+	{
+		biogeo_regions_cropped = shapefile("Biogeo_regions_shp/Biogeo_regions_2016.shp")
+		biogeo_regions_cropped = crop(biogeo_regions_cropped, extent(2600000,6000000,1400000,5700000))
+		biogeo_regions_cropped = st_as_sf(biogeo_regions_cropped)
+		biogeo_regions_cropped = st_simplify(biogeo_regions_cropped, preserveTopology=T, dTolerance=2000)
+		st_write(biogeo_regions_cropped, "TEMP.shp"); biogeo_regions_cropped = shapefile("TEMP.shp")
+		saveRDS(biogeo_regions_cropped, "Biogeo_regions_shp/Biogeo_regions_2016b.rds")
+	}	else	{
+		biogeo_regions_cropped = readRDS("Biogeo_regions_shp/Biogeo_regions_2016b.rds")
+	}
+colours = read.csv("Biogeo_regions_shp/Biogeo_regions_2016.csv", head=T); cols = rep(NA, dim(biogeo_regions_cropped@data)[1])
+for (i in 1:length(cols)) cols[i] = colours[which(colours[,"region"]==biogeo_regions_cropped@data[i,"code"]),"colour"]
+for (i in 1:length(cols)) cols[i] = paste0(cols[i],"BF") # to add a 75% transparency
+cols[which(biogeo_regions_cropped@data[,"code"]=="Atlantic")] = gsub("BF","80",cols[which(biogeo_regions_cropped@data[,"code"]=="Atlantic")])
+
+pdf(paste0("All_the_figures_&_SI/Biogeogra_regions_NEW1.pdf"), width=7, height=8.6)
+par(oma=c(0,0,0,0), mar=c(0,0,0,0), lwd=0.4, col="gray30", col.axis="gray30", fg="gray30")
+plot(biogeo_regions_cropped, lwd=0.4, col=cols, border="gray40"); region_names = biogeo_regions_cropped@data[,"code"]
+legend(x=3600000, y=5700000, region_names, text.col="gray30", pch=16, pt.cex=1.8, col=cols, box.lty=0, cex=0.8, x.intersp=0.9, y.intersp=1.3)
+legend(x=3600000, y=5700000, region_names, text.col=rgb(0,0,0,0), pch=1, pt.cex=1.8, col="gray30", box.lty=0, cex=0.8, pt.lwd=1, x.intersp=0.9, y.intersp=1.3)
+dev.off()
+
+pols = list()
+for (i in 1:length(biogeo_regions_cropped@polygons))
+	{
+		pol = subset(biogeo_regions_cropped, code==biogeo_regions_cropped@data[i,"code"])
+		pols[[i]] = spTransform(pol, crs(ESI_list_1[[1]][[1]][[length(pastPeriods)]]))
+	}
+r = ESI_list_1[[1]][[1]][[1]]; r[!is.na(r[])] = 0; r0 = r
+for (i in 1:length(biogeo_regions_cropped@polygons))
+	{
+		cell_IDs = cellFromPolygon(r, pols[[i]])
+		if (length(cell_IDs) > 0)
+			{
+				for (j in 1:length(cell_IDs)) r[cell_IDs[[j]]] = i
+			}	else	{
+				print(i)
+			}
+	}
+indices = which(r[]==0)
+for (i in 1:length(indices))
+	{
+		vS = r[raster::adjacent(r, cells=indices[i], directions=4, pairs=F)]
+		vS = vS[(!is.na(vS))&(vS!=0)]; unique_vS = unique(vS); counts = rep(NA, length(unique_vS))
+		for (j in 1:length(unique_vS)) counts[j] = sum(vS==unique_vS[j])
+		index = which(counts==max(counts)) # print(c(i,vS))
+		if (length(index) == 1) r[indices[i]] = unique_vS[index]
+	}
+r[which(r[]==0)] = NA; r[which(is.na(r0[]))] = NA
+indices = which((!is.na(r0[]))&(is.na(r[])))
+for (i in 1:length(indices))
+	{
+		vS = r[raster::adjacent(r, cells=indices[i], directions=4, pairs=F)]
+		if (sum(is.na(vS)) == length(vS))
+			{
+				vS = r[raster::adjacent(r, cells=indices[i], directions=8, pairs=F)]
+			}
+		vS = vS[(!is.na(vS))&(vS!=0)]; unique_vS = unique(vS); counts = rep(NA, length(unique_vS))
+		for (j in 1:length(unique_vS)) counts[j] = sum(vS==unique_vS[j])
+		index = which(counts==max(counts)) # print(c(i,vS))
+		if (length(index) == 1) r[indices[i]] = unique_vS[index]
+	}
+
+pdf(paste0("All_the_figures_&_SI/Biogeogra_regions_NEW2.pdf"), width=8, height=5.8)
+par(mfrow=c(3,6), oma=c(0,0,0,0), mar=c(0,0,0,0), lwd=0.2, col="gray30", col.axis="gray30", fg=NA)
+plot(europe3, lwd=0.1, border=NA, col=NA); my_breaks = seq(0.5,9.5,1)
+plot(r, col=cols, breaks=my_breaks, border=NA, lwd=0.1, add=T, legend=F)
+plot(contour, lwd=0.4, border="gray50", col=NA, add=T)
+mtext("Biogeographical regions", side=3, line=-1.1, at=3.5, cex=0.45, col="gray30")
+dev.off()
+
 biogeo_region_ESIs = TRUE; biogeo_region_SRIs = FALSE
 for (i in 1:length(selected_regions))
 	{
-		pol = subset(biogeo_regions, code==selected_regions[i])
+		pol = subset(biogeo_regions_subset, code==selected_regions[i])
 		pol = spTransform(pol, crs(ESI_list_1[[1]][[1]][[length(pastPeriods)]]))
 		for (g in 1:length(models_isimip3a))
 			{
