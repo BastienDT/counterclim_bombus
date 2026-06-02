@@ -1578,6 +1578,8 @@ for (g in 1:length(models_isimip3a))
 		box(lwd=0.4, col="gray30")
 	}
 dev.off()
+
+pValues_BI_differences_fromZero = matrix(nrow=dim(species)[1], ncol=length(models_isimip3a)*length(pastPeriods))
 pValues_negative_BI_differences = matrix(nrow=dim(species)[1], ncol=length(models_isimip3a)*length(pastPeriods))
 pValues_positive_BI_differences = matrix(nrow=dim(species)[1], ncol=length(models_isimip3a)*length(pastPeriods))
 for (g in 1:length(models_isimip3a))
@@ -1588,12 +1590,15 @@ for (g in 1:length(models_isimip3a))
 				colNames = c(colNames, paste0(models_isimip3a_names[g],"-",pastPeriods[i]))
 			}
 	}
+row.names(pValues_BI_differences_fromZero) = species[,1]; colnames(pValues_negative_BI_differences) = colNames
 row.names(pValues_negative_BI_differences) = species[,1]; colnames(pValues_negative_BI_differences) = colNames
 row.names(pValues_positive_BI_differences) = species[,1]; colnames(pValues_positive_BI_differences) = colNames
 for (g in 1:length(models_isimip3a))
 	{
+		pValues_WMW_differences_fromZero = matrix(nrow=dim(species)[1], ncol=length(pastPeriods))
 		pValues_WMW_negative_differences = matrix(nrow=dim(species)[1], ncol=length(pastPeriods))
 		pValues_WMW_positive_differences = matrix(nrow=dim(species)[1], ncol=length(pastPeriods))
+		colnames(pValues_WMW_differences_fromZero) = pastPeriods
 		colnames(pValues_WMW_negative_differences) = pastPeriods
 		colnames(pValues_WMW_positive_differences) = pastPeriods
 		for (i in 1:length(pastPeriods))
@@ -1602,6 +1607,7 @@ for (g in 1:length(models_isimip3a))
 					{
 						if (sum(is.na(differences_list1[[g]][[i]][j,])) != length(differences_list1[[g]][[i]][j,]))
 							{
+								pValues_WMW_differences_fromZero[j,i] = wilcox.test(differences_list1[[g]][[i]][j,], mu=0, alternative="two.sided")$p.value
 								pValues_WMW_negative_differences[j,i] = wilcox.test(differences_list1[[g]][[i]][j,], mu=0, alternative="less")$p.value
 								pValues_WMW_positive_differences[j,i] = wilcox.test(differences_list1[[g]][[i]][j,], mu=0, alternative="greater")$p.value						
 							}
@@ -1609,6 +1615,32 @@ for (g in 1:length(models_isimip3a))
 			}
 		for (i in 1:length(pastPeriods)) # Benjamini-Hochberg correction
 			{
+				buffer1 = pValues_WMW_differences_fromZero[,i]; buffer2 = buffer1; 
+				buffer2 = buffer2[order(buffer2)]; n = sum(!is.na(buffer2))
+				for (j in 1:dim(pValues_WMW_differences_fromZero)[1])
+					{
+						if (!is.na(pValues_WMW_differences_fromZero[j,i]))
+							{
+								rank = which(buffer2 == pValues_WMW_differences_fromZero[j,i])[1]
+								pValueText = as.character(round(pValues_WMW_differences_fromZero[j,i],3))
+								if (nchar(pValueText) == 4) pValueText = paste0(pValueText,"0")
+								if (nchar(pValueText) == 3) pValueText = paste0(pValueText,"00")
+								if (pValueText == "1") pValueText = ">0.999"
+								if (pValueText == "0") pValueText = "<0.001"
+								corrected_cut_off_value = (rank/n)*0.05
+								if (pValues_WMW_differences_fromZero[j,i] < corrected_cut_off_value)
+									{
+										pValueText = paste0(pValueText,"*")
+									}
+								pValues_BI_differences_fromZero[j,(length(pastPeriods)*(g-1))+i] = pValueText
+							}
+					}
+				if (i == length(pastPeriods))
+					{
+						n = length(which(grepl("\\*",pValues_BI_differences_fromZero[,(length(pastPeriods)*(g-1))+i])))
+						p = round(100*(n/dim(species)[1]))
+						cat(models_isimip3a_names[g],", significant BI differences from zero:\tp = ",p,"% (",n,"/",dim(species)[1],")\n",sep="")
+					}
 				buffer1 = pValues_WMW_negative_differences[,i]; buffer2 = buffer1; 
 				buffer2 = buffer2[order(buffer2)]; n = sum(!is.na(buffer2))
 				for (j in 1:dim(pValues_WMW_negative_differences)[1])
@@ -1628,6 +1660,12 @@ for (g in 1:length(models_isimip3a))
 									}
 								pValues_negative_BI_differences[j,(length(pastPeriods)*(g-1))+i] = pValueText
 							}
+					}
+				if (i == length(pastPeriods))
+					{
+						n = length(which(grepl("\\*",pValues_negative_BI_differences[,(length(pastPeriods)*(g-1))+i])))
+						p = round(100*(n/dim(species)[1]))
+						cat(models_isimip3a_names[g],", significant negative BI differences:\tp = ",p,"% (",n,"/",dim(species)[1],")\n",sep="")
 					}
 				buffer1 = pValues_WMW_positive_differences[,i]; buffer2 = buffer1; 
 				buffer2 = buffer2[order(buffer2)]; n = sum(!is.na(buffer2))
@@ -1649,8 +1687,27 @@ for (g in 1:length(models_isimip3a))
 								pValues_positive_BI_differences[j,(length(pastPeriods)*(g-1))+i] = pValueText
 							}
 					}
+				if (i == length(pastPeriods))
+					{
+						n = length(which(grepl("\\*",pValues_positive_BI_differences[,(length(pastPeriods)*(g-1))+i])))
+						p = round(100*(n/dim(species)[1]))
+						cat(models_isimip3a_names[g],", significant positive BI differences:\tp = ",p,"% (",n,"/",dim(species)[1],")\n",sep="")
+					}
 			}
 	}
-write.csv(pValues_negative_BI_differences, "Negative_BI_diffs.csv", quote=F)
-write.csv(pValues_positive_BI_differences, "Positive_BI_diffs.csv", quote=F)
+		# GSWP3-W5E5, significant BI differences from zero:	 p = 77% (36/47)
+		# GSWP3-W5E5, significant negative BI differences:	 p = 11%  (5/47)
+		# GSWP3-W5E5, significant positive BI differences:	 p = 66% (31/47)
+		# 20CRv3, significant BI differences from zero:		 p = 72% (34/47)
+		# 20CRv3, significant negative BI differences:		 p = 26% (12/47)
+		# 20CRv3, significant positive BI differences:		 p = 47% (22/47)
+		# 20CRv3-ERA5, significant BI differences from zero: p = 74% (35/47)
+		# 20CRv3-ERA5, significant negative BI differences:	 p = 21% (10/47)
+		# 20CRv3-ERA5, significant positive BI differences:	 p = 55% (26/47)
+		# 20CRv3-W5E5, significant BI differences from zero: p = 79% (37/47)
+		# 20CRv3-W5E5, significant negative BI differences:	 p =  9%  (4/47)
+		# 20CRv3-W5E5, significant positive BI differences:	 p = 62% (29/47)
+write.csv(pValues_BI_differences_fromZero, "BI_diffs_fromZero.csv", quote=F)
+write.csv(pValues_negative_BI_differences, "BI_negative_diffs.csv", quote=F)
+write.csv(pValues_positive_BI_differences, "BI_positive_diffs.csv", quote=F)
 
