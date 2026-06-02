@@ -1590,7 +1590,7 @@ for (g in 1:length(models_isimip3a))
 				colNames = c(colNames, paste0(models_isimip3a_names[g],"-",pastPeriods[i]))
 			}
 	}
-row.names(pValues_BI_differences_fromZero) = species[,1]; colnames(pValues_negative_BI_differences) = colNames
+row.names(pValues_BI_differences_fromZero) = species[,1]; colnames(pValues_BI_differences_fromZero) = colNames
 row.names(pValues_negative_BI_differences) = species[,1]; colnames(pValues_negative_BI_differences) = colNames
 row.names(pValues_positive_BI_differences) = species[,1]; colnames(pValues_positive_BI_differences) = colNames
 for (g in 1:length(models_isimip3a))
