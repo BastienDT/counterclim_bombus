@@ -630,23 +630,26 @@ if (newAnalyses == TRUE) { for (h in 1:length(models_isimip3a)) { for (i in 1:di
 	}}}
 if (!file.exists(paste0("All_AUC_values.csv")))
 	{
-		AUC_values = matrix(nrow=dim(species)[1], ncol=8); row.names(AUC_values) = species[,"species"]; colNames = c()
+		AUC_values = matrix(nrow=dim(species)[1], ncol=4); row.names(AUC_values) = species[,"species"]; colNames = c()
 		for (h in 1:length(models_isimip3a))
 			{
-				colNames = c(colNames, paste0("CCV_",models_isimip3a_names[h]), paste0("SCV2_",models_isimip3a_names[h]))
+				colNames = c(colNames, paste0(models_isimip3a_names[h]))
 				for (i in 1:dim(species)[1])
 					{
 						tab = read.csv(paste0("BRT_projection_files/BRT_models/",species[i,"species"],"_",models_isimip3a_names[h],"_AUCs.csv"), head=T)
-						for (j in 1:dim(tab)[2])
+						for (j in 2:dim(tab)[2])
 							{
-								meanV = round(mean(tab[,j]),3); sdV = round(sd(tab[,j]),3)
-								if (nchar(meanV) == 4) meanV = paste0(meanV,"0")
-								if (nchar(meanV) == 3) meanV = paste0(meanV,"00")
-								if (nchar(meanV) == 1) meanV = paste0(meanV,".000")
-								if (nchar(sdV) == 4) sdV = paste0(sdV,"0")
-								if (nchar(sdV) == 3) sdV = paste0(sdV,"00")
-								if (nchar(sdV) == 1) sdV = paste0(sdV,".000")
-								AUC_values[i,((h-1)*2)+j] = paste0(meanV," (",sdV,")")
+								meanV = round(mean(tab[,j]),2); sdV = round(sd(tab[,j]),2)
+								minV = round(min(tab[,j]),2); maxV = round(max(tab[,j]),2)
+								if (nchar(meanV) == 3) meanV = paste0(meanV,"0")
+								if (nchar(meanV) == 1) meanV = paste0(meanV,".00")
+								if (nchar(sdV) == 3) sdV = paste0(sdV,"0")
+								if (nchar(sdV) == 1) sdV = paste0(sdV,".00")
+								if (nchar(minV) == 3) minV = paste0(minV,"0")
+								if (nchar(minV) == 1) minV = paste0(minV,".00")
+								if (nchar(maxV) == 3) maxV = paste0(maxV,"0")
+								if (nchar(maxV) == 1) maxV = paste0(maxV,".00")
+								AUC_values[i,h] = paste0(meanV," [",minV,"-",maxV,"]")
 							}
 					}
 			}
@@ -700,26 +703,24 @@ if (!file.exists(paste0("All_SIppc_values.csv")))
 								thresholds[j] = optimised_threshold
 							}
 						tabs_list2[[i]] = tabs_list3
-						medianV = round(median(sorensen_ppcs),2)
-						minV = round(min(sorensen_ppcs),2)
-						maxV = round(max(sorensen_ppcs),2)
-						if (nchar(medianV) == 3) medianV = paste0(medianV,"0")
-						if (nchar(medianV) == 1) medianV = paste0(medianV,".00")
+						meanV = round(mean(sorensen_ppcs),2)
+						minV = round(min(sorensen_ppcs),2); maxV = round(max(sorensen_ppcs),2)
+						if (nchar(meanV) == 3) meanV = paste0(meanV,"0")
+						if (nchar(meanV) == 1) meanV = paste0(meanV,".00")
 						if (nchar(minV) == 3) minV = paste0(minV,"0")
 						if (nchar(minV) == 1) minV = paste0(minV,".00")
 						if (nchar(maxV) == 3) maxV = paste0(maxV,"0")
 						if (nchar(maxV) == 1) maxV = paste0(maxV,".00")
-						tab[i,((h-1)*2)+1] = paste0(medianV," [",minV,"-",maxV,"]")
-						medianV = round(median(thresholds),2)
-						minV = round(min(thresholds),2)
-						maxV = round(max(thresholds),2)
-						if (nchar(medianV) == 3) medianV = paste0(medianV,"0")
-						if (nchar(medianV) == 1) medianV = paste0(medianV,".00")
+						tab[i,((h-1)*2)+1] = paste0(meanV," [",minV,"-",maxV,"]")					
+						meanV = round(mean(thresholds),2)
+						minV = round(min(thresholds),2); maxV = round(max(thresholds),2)
+						if (nchar(meanV) == 3) medianV = paste0(meanV,"0")
+						if (nchar(meanV) == 1) medianV = paste0(meanV,".00")
 						if (nchar(minV) == 3) minV = paste0(minV,"0")
 						if (nchar(minV) == 1) minV = paste0(minV,".00")
 						if (nchar(maxV) == 3) maxV = paste0(maxV,"0")
 						if (nchar(maxV) == 1) maxV = paste0(maxV,".00")
-						tab[i,((h-1)*2)+2] = paste0(medianV," [",minV,"-",maxV,"]")
+						tab[i,((h-1)*2)+2] = paste0(meanV," [",minV,"-",maxV,"]")
 					}
 				tabs_list1[[h]] = tabs_list2
 			}
@@ -788,12 +789,12 @@ for (g in 1:length(models_isimip3a))
 						temperature = brick(paste0("Environmental_rasters/ISIMIP3a/tas_day_",scenarios[h],"_historical_",models_isimip3a[g],"_",gsub("-","_",pastPeriods[i]),"_ymonmean.nc"))
 						precipitation = brick(paste0("Environmental_rasters/ISIMIP3a/pr_day_",scenarios[h],"_historical_",models_isimip3a[g],"_",gsub("-","_",pastPeriods[i]),"_ymonmean.nc"))
 						relative_humidity = brick(paste0("Environmental_rasters/ISIMIP3a/hurs_day_",scenarios[h],"_historical_",models_isimip3a[g],"_",gsub("-","_",pastPeriods[i]),"_ymonmean.nc"))
-						if (pastPeriods[i] != "2000-2019")
-							{
-								land_cover = nc_open(paste0("Environmental_rasters/ISIMIP3a/landcover_annual_",gsub("-","_",pastPeriods[i]),"_timmean.nc4"))
-							}	else	{
-								land_cover = nc_open(paste0("Environmental_rasters/ISIMIP3a/landcover_annual_",gsub("-","_",pastPeriods[i]),"_timmean.nc"))
-							}
+						# if (pastPeriods[i] != "2000-2019")
+							# {
+								# land_cover = nc_open(paste0("Environmental_rasters/ISIMIP3a/landcover_annual_",gsub("-","_",pastPeriods[i]),"_timmean.nc4"))
+							# }	else	{
+								# land_cover = nc_open(paste0("Environmental_rasters/ISIMIP3a/landcover_annual_",gsub("-","_",pastPeriods[i]),"_timmean.nc"))
+							# }
 						population = brick(paste0("Environmental_rasters/ISIMIP3a/population_histsoc_0p5deg_annual_",gsub("-","_",pastPeriods[i]),"_timmean.nc4"), varname="total-population")		
 						temperature_winter = mean(temperature[[12]],temperature[[1]],temperature[[2]])-273.15 # conversion to Celcius degrees
 						temperature_spring = mean(temperature[[3]],temperature[[4]],temperature[[5]])-273.15 # conversion to Celcius degrees
@@ -810,10 +811,22 @@ for (g in 1:length(models_isimip3a))
 						landCoverVariableNames = as.character(read.csv("Environmental_rasters/Luse.csv")[1:12,2])
 						landCoverVariableIDs = as.character(read.csv("Environmental_rasters/Luse.csv")[1:12,1])
 						land_covers1 = list(); land_covers2 = list(); land_covers3 = list()
-						for (j in 1:12)
+						if (pastPeriods[i] != "2000-2019")
 							{
-								land_covers1[[j]] = brick(paste0("Environmental_rasters/ISIMIP3a/landcover_annual_2000_2019_timmean.nc"), varname=landCoverVariableIDs[j])
+								for (j in 1:12)
+									{
+										land_covers1[[j]] = brick(paste0("Environmental_rasters/ISIMIP3a/landcover_annual_",gsub("-","_",pastPeriods[i]),"_timmean.nc4"), varname=landCoverVariableIDs[j])
+									}
+							}	else	{
+								for (j in 1:12)
+									{
+										land_covers1[[j]] = brick(paste0("Environmental_rasters/ISIMIP3a/landcover_annual_",gsub("-","_",pastPeriods[i]),"_timmean.nc"), varname=landCoverVariableIDs[j])
+									}
 							}
+						# for (j in 1:12) --> WRONG and corrected on 01/06/2026
+							# {
+								# land_covers1[[j]] = brick(paste0("Environmental_rasters/ISIMIP3a/landcover_annual_2000_2019_timmean.nc"), varname=landCoverVariableIDs[j])
+							# }
 						variable_codes = c("croplands","pastures","urbanAreas","primaryForest","primaryNonF","secondaryForest","secondaryNonF")
 						variable_names = c("crops","pasture","urban land","forested primary land","non-forested primary land",
 								  		   "potentially forested secondary land","potentially non-forested secondary land")
@@ -997,11 +1010,11 @@ for (g in 1:length(models_isimip3a))
 	{
 		if (plotting_obsclim_counterclim_differences)
 			{
-				pdf(paste0("All_the_figures_&_SI/ESI_evolutions_m",g,".pdf"), width=8, height=5.8)
+				pdf(paste0("All_the_figures_&_SI/ESI_evolutions_m",g,"a.pdf"), width=8, height=5.8)
 			}	else	{
-				pdf(paste0("All_the_figures_&_SI/ESI_evolutions_m",g,"_TEMP.pdf"), width=8, height=5.8)
+				pdf(paste0("All_the_figures_&_SI/ESI_evolutions_m",g,"b.pdf"), width=8, height=5.8)
 			}
-		par(mfrow=c(3,6), oma=c(0,0,0,0), mar=c(0,0,0,0), lwd=0.2, col="gray30"); vS1 = c(); vS2 = c()
+		par(mfrow=c(3,6), oma=c(0,0,0,0), mar=c(0,0,0,0), lwd=0.2, col="gray30"); vS1 = c(); vS2 = c(); vS3 = c()
 		for (h in 1:length(scenarios))
 			{
 				for (i in 1:length(pastPeriods)) vS1 = c(vS1, ESI_list_1[[g]][[h]][[i]][])
@@ -1010,11 +1023,16 @@ for (g in 1:length(models_isimip3a))
 			{
 				vS2 = c(vS2, ESI_list_1[[g]][[1]][[i]][]-ESI_list_1[[g]][[2]][[i]][])
 			}
-		vS1 = vS1[which(!is.na(vS1))]; vS2 = vS2[which(!is.na(vS2))]
-		minVS2 = min(vS2); maxVS2 = max(vS2)
+		vS3 = c(vS3, ESI_list_1[[g]][[1]][[length(pastPeriods)]][]-ESI_list_1[[g]][[1]][[1]][])
+		vS3 = c(vS3, ESI_list_1[[g]][[2]][[length(pastPeriods)]][]-ESI_list_1[[g]][[2]][[1]][])
+		vS1 = vS1[which(!is.na(vS1))]; vS2 = vS2[which(!is.na(vS2))]; vS3 = vS3[which(!is.na(vS3))]
+		minVS2 = min(vS2); maxVS2 = max(vS2); minVS3 = min(vS3); maxVS3 = max(vS3)
 		if (abs(minVS2) < abs(maxVS2)) minVS2 = -maxVS2
 		if (abs(maxVS2) < abs(minVS2)) maxVS2 = -minVS2
+		if (abs(minVS3) < abs(maxVS3)) minVS3 = -maxVS3
+		if (abs(maxVS3) < abs(minVS3)) maxVS3 = -minVS3
 		if (maxVS2 < 0.1) { minVS2 = -0.1; maxVS2 = 0.1 }
+		if (maxVS3 < 0.1) { minVS3 = -0.1; maxVS3 = 0.1 }
 		for (h in 1:length(scenarios))
 			{
 				for (i in 1:length(pastPeriods))
@@ -1056,8 +1074,8 @@ for (g in 1:length(models_isimip3a))
 				plot.new(); plot.new(); plot.new(); plot.new()
 				difference_counterclim_century = ESI_list_1[[g]][[2]][[length(pastPeriods)]]
 				difference_counterclim_century[] = difference_counterclim_century[]-ESI_list_1[[g]][[2]][[1]][]
-				index1 = (((min(difference_counterclim_century[],na.rm=T)-minVS2)/(maxVS2-minVS2))*100)+1
-				index2 = (((max(difference_counterclim_century[],na.rm=T)-minVS2)/(maxVS2-minVS2))*100)+1
+				index1 = (((min(difference_counterclim_century[],na.rm=T)-minVS3)/(maxVS3-minVS3))*100)+1
+				index2 = (((max(difference_counterclim_century[],na.rm=T)-minVS3)/(maxVS3-minVS3))*100)+1
 				par(lwd=0.2, col="gray30", col.axis="gray30", fg=NA)
 				plot(europe3, lwd=0.1, border=NA, col=NA); cols = colourScales[[3]][index1:index2]; rast = raster(as.matrix(c(minVS2,maxVS2)))
 				plot(difference_counterclim_century, col=cols, border=NA, lwd=0.1, add=T, legend=F); plot(contour, lwd=0.4, border="gray50", col=NA, add=T)
@@ -1068,8 +1086,8 @@ for (g in 1:length(models_isimip3a))
 					 at=c(-0.2,-0.1,0,0.1,0.2)), alpha=1, side=3)
 				difference_obsclim_century = ESI_list_1[[g]][[1]][[length(pastPeriods)]]
 				difference_obsclim_century[] = difference_obsclim_century[]-ESI_list_1[[g]][[1]][[1]][]
-				index1 = (((min(difference_obsclim_century[],na.rm=T)-minVS2)/(maxVS2-minVS2))*100)+1
-				index2 = (((max(difference_obsclim_century[],na.rm=T)-minVS2)/(maxVS2-minVS2))*100)+1
+				index1 = (((min(difference_obsclim_century[],na.rm=T)-minVS3)/(maxVS3-minVS3))*100)+1
+				index2 = (((max(difference_obsclim_century[],na.rm=T)-minVS3)/(maxVS3-minVS3))*100)+1
 				par(lwd=0.2, col="gray30", col.axis="gray30", fg=NA)
 				plot(europe3, lwd=0.1, border=NA, col=NA); cols = colourScales[[3]][index1:index2]; rast = raster(as.matrix(c(minVS2,maxVS2)))
 				plot(difference_obsclim_century, col=cols, border=NA, lwd=0.1, add=T, legend=F); plot(contour, lwd=0.4, border="gray50", col=NA, add=T)
@@ -1140,22 +1158,17 @@ for (g in 1:length(models_isimip3a)) print(round(mean(((ESI_list_1[[g]][[2]][[1]
 for (g in 1:length(models_isimip3a)) print(round(mean(((ESI_list_1[[g]][[2]][[length(pastPeriods)]][]-ESI_list_1[[g]][[1]][[length(pastPeriods)]][])/ESI_list_1[[g]][[2]][[length(pastPeriods)]][])*100,na.rm=T),2))
 for (g in 1:length(models_isimip3a)) print(round(max(((ESI_list_1[[g]][[1]][[length(pastPeriods)]][]-ESI_list_1[[g]][[2]][[length(pastPeriods)]][])/ESI_list_1[[g]][[1]][[length(pastPeriods)]][])*100,na.rm=T),2))
 
+	# 3.25% (GSWP3-W5E5), 3.16% (20CRv3), 4.10% (20CRv3-ERA5), 4.74% (20CRv3-W5E5) --> an average loss of 3-5% of local ecological suitability between 2000-2019 and 1900-1919 (obsclim)
+	# -1.85% (GSWP3-W5E5), -0.68% (20CRv3), -1.00% (20CRv3-ERA5), -1.11% (20CRv3-W5E5) --> an average gain of 1-2% of local ecological suitability between 2000-2019 and 1900-1919 (counterclim)
+	# 5.17% (GSWP3-W5E5), 4.09% (20CRv3), 5.36% (20CRv3-ERA5), 6.20% (20CRv3-W5E5) --> an average loss of 4-6% of local ecological suitability solely due to climate change
+	# 18.79% (GSWP3-W5E5), 14.69% (20CRv3), 16.53% (20CRv3-ERA5), 17.83% (20CRv3-W5E5) --> an average loss up to 15-19% of local ecological suitability solely due to climate change
+
 for (g in 1:length(models_isimip3a)) print(round(mean(((SRI_list_1[[g]][[1]][[1]][]-SRI_list_1[[g]][[1]][[length(pastPeriods)]][])/SRI_list_1[[g]][[1]][[1]][])*100,na.rm=T),2))
 for (g in 1:length(models_isimip3a)) print(round(mean(((SRI_list_1[[g]][[2]][[1]][]-SRI_list_1[[g]][[2]][[length(pastPeriods)]][])/SRI_list_1[[g]][[2]][[1]][])*100,na.rm=T),2))
 for (g in 1:length(models_isimip3a)) print(round(mean(((SRI_list_1[[g]][[2]][[length(pastPeriods)]][]-SRI_list_1[[g]][[1]][[length(pastPeriods)]][])/SRI_list_1[[g]][[2]][[length(pastPeriods)]][])*100,na.rm=T),2))
 for (g in 1:length(models_isimip3a)) print(round(max(((SRI_list_1[[g]][[1]][[length(pastPeriods)]][]-SRI_list_1[[g]][[2]][[length(pastPeriods)]][])/SRI_list_1[[g]][[1]][[length(pastPeriods)]][])*100,na.rm=T),2))
-
 g = 2; vS = (SRI_list_1[[g]][[2]][[length(pastPeriods)]][]-SRI_list_1[[g]][[1]][[length(pastPeriods)]][])/SRI_list_1[[g]][[2]][[length(pastPeriods)]][]
 vS = vS[which(!is.na(vS))]; vS = vS[which(is.finite(vS))]; print(round(mean(vS*100),2)) # (*)
-
-	# 4.34% (GSWP3-W5E5), 4.00% (20CRv3), 5.11% (20CRv3-ERA5), 5.81% (20CRv3-W5E5) --> an average loss of 4-6% of local ecological suitability between 2000-2019 and 1900-1919 (obsclim)
-	# -0.70% (GSWP3-W5E5), 0.22% (20CRv3), 0.11% (20CRv3-ERA5), 0.04% (20CRv3-W5E5) --> an average gain of ~0% of local ecological suitability between 2000-2019 and 1900-1919 (counterclim)
-	# 5.17% (GSWP3-W5E5), 4.09% (20CRv3), 5.36% (20CRv3-ERA5), 6.20% (20CRv3-W5E5) --> an average loss of 4-6% of local ecological suitability solely due to climate change
-	# 18.79% (GSWP3-W5E5), 14.69% (20CRv3), 16.53% (20CRv3-ERA5), 17.83% (20CRv3-W5E5) --> an average loss up to 15-19% of local ecological suitability solely due to climate change
-	# 6.72 (GSWP3-W5E5), 4.34% (20CRv3), 5.76% (20CRv3-ERA5), 6.71% (20CRv3-W5E5) --> an average loss of 4-7% of local species diversity between 2000-2019 and 1900-1919 (obsclim)
-	# -1.79% (GSWP3-W5E5), -0.64% (20CRv3), -1.67% (20CRv3-ERA5), -1.70% (20CRv3-W5E5) --> an average gain of 1-2% of local species diversity between 2000-2019 and 1900-1919 (counterclim)
-	# 8.16% (GSWP3-W5E5), 4.84%* (20CRv3), 6.94% (20CRv3-ERA5), 8.30% (20CRv3-W5E5) --> an average loss of 5-8% of local species diversity solely due to climate change
-	# 60.00% (GSWP3-W5E5), 100.00% (20CRv3), 66.67% (20CRv3-ERA5), 80.00% (20CRv3-W5E5) --> a loss up to 60-100% of local species diversity solely due to climate change
 
 avg_ES_loss = matrix(nrow=dim(species)[1], ncol=length(models_isimip3a)); max_ES_loss = matrix(nrow=dim(species)[1], ncol=length(models_isimip3a)) # for Bastien
 row.names(avg_ES_loss) = species[,1]; colnames(avg_ES_loss) = models_isimip3a_names; row.names(max_ES_loss) = species[,1]; colnames(max_ES_loss) = models_isimip3a_names
@@ -1213,9 +1226,6 @@ for (i in 1:length(target_countries))
 		# ESI, Spain: 11.40% (GSWP3-W5E5), 7.06% (20CRv3), 6.60% (20CRv3-ERA5), 6.85% (20CRv3-W5E5) --> an average loss of 7-11% of local species diversity solely due to climate change
 		# ESI, France: 18.13% (GSWP3-W5E5), 11.31% (20CRv3), 18.05% (20CRv3-ERA5), 18.74% (20CRv3-W5E5) --> an average loss of 11-19% of local species diversity solely due to climate change
 		# ESI, Sweden: -2.36% (GSWP3-W5E5), -0.03% (20CRv3), -0.92% (20CRv3-ERA5), 2.76% (20CRv3-W5E5) --> an average gain of -2 to 3% of local species diversity solely due to climate change
-		# SRI, Spain: 22.87% (GSWP3-W5E5), 12.59* (20CRv3), 2.02% (20CRv3-ERA5), 8.95% (20CRv3-W5E5) --> an average loss of 10-20% of local species diversity solely due to climate change
-		# SRI, France: 29.86% (GSWP3-W5E5), 15.93% (20CRv3), 30.19% (20CRv3-ERA5), 30.39% (20CRv3-W5E5) --> an average loss of 16-30% of local species diversity solely due to climate change
-		# SRI, Sweden: -6.68% (GSWP3-W5E5), -0.33% (20CRv3), -5.32% (20CRv3-ERA5), -0.28% (20CRv3-W5E5) --> an average gain of 0 to 7% of local species diversity solely due to climate change
 
 selected_regions = c("Alpine","Atlantic","Boreal","Continental","Mediterranean","Pannonian")
 if (!file.exists("Biogeo_regions_shp/Biogeo_regions_2016a.rds"))
