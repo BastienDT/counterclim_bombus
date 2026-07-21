@@ -1708,6 +1708,14 @@ for (g in 1:length(models_isimip3a))
 		# 20CRv3-W5E5, significant negative BI differences:	 p =  9%  (4/47)
 		# 20CRv3-W5E5, significant positive BI differences:	 p = 62% (29/47)
 write.csv(pValues_BI_differences_fromZero, "BI_diffs_fromZero.csv", quote=F)
-write.csv(pValues_negative_BI_differences, "BI_negative_diffs.csv", quote=F)
 write.csv(pValues_positive_BI_differences, "BI_positive_diffs.csv", quote=F)
+write.csv(pValues_negative_BI_differences, "BI_negative_diffs.csv", quote=F)
+for (i in 1:length(pastPeriods)) # Benjamini-Hochberg correction
+	{
+		L = length(pastPeriods); indices = seq(1,(1+(3*L)),L)+(i-1)
+		tmp1 = pValues_BI_differences_fromZero[,indices]
+		tmp2 = pValues_positive_BI_differences[,indices]
+		tmp3 = pValues_negative_BI_differences[,indices]
+		write.table(cbind(tmp1,tmp2,tmp3), paste0("Table_S2_",pastPeriods[i],".txt"), sep="\t", row.names=F, quote=F)
+	}
 
